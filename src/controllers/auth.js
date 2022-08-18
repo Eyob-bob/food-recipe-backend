@@ -68,7 +68,7 @@ exports.signin = async (req, res) => {
     const loggedUser = await User.findOne({ email: req.body.email });
     if (!loggedUser) return res.status(400).send("User doesnot exist!");
 
-    if (!bcrypt.compare(req.body.password, loggedUser.password)) {
+    if (!(await bcrypt.compare(req.body.password, loggedUser.password))) {
       return res.status(403).send("password incorrect");
     }
 
@@ -79,13 +79,28 @@ exports.signin = async (req, res) => {
 
     await Token.findOneAndUpdate(
       { userId: user.userId },
-      { accessToken, refreshToken }
+      { access_token: accessToken, refresh_token: refreshToken },
+      { new: true }
     );
 
     return res.json({ accessToken, refreshToken });
   } catch (error) {
     res.status(400).send("An error occured");
   }
+};
+
+// Refresh Access Token
+exports.refresh = async (req, res) => {
+  const refreshToken = req.body.refreshToken;
+  if (!refreshToken) return res.status(400).send("Empty Token");
+  if (!(await Token.findOne({ refresh_token: refreshToken })))
+    return res.status(401).send("Token doesnot found");
+
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    if (err) return res.send(403);
+    const accessToken = generateAccessToken({ userId: user.userId });
+    return res.json({ accessToken });
+  });
 };
 
 // Email Verification
