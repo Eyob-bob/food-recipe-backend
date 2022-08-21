@@ -13,18 +13,6 @@ function generateRefreshToken(user) {
   return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);
 }
 
-function authenticate(req, res, next) {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(" ")[1];
-  if (token == null) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
-
 // SignUp
 exports.signup = async (req, res) => {
   try {
@@ -122,4 +110,19 @@ exports.verify = async (req, res) => {
   } catch (error) {
     res.status(400).send("An error occured");
   }
+};
+
+// Logout
+exports.logout = async (req, res) => {
+  const refreshToken = req.body.refreshToken;
+  if (!refreshToken) return res.sendStatus(404);
+
+  const token = await Token.findOneAndUpdate(
+    { refresh_token: refreshToken },
+    { refresh_token: "", access_token: "" },
+    { new: true }
+  );
+  if (!token) return res.sendStatus(404);
+
+  res.status(200).send("User Successfully logged out");
 };
