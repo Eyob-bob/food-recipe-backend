@@ -31,16 +31,25 @@ exports.signup = async (req, res) => {
         password: hashedPassword,
       }).save();
 
-      let token = await new Token({
+      const token = await new Token({
         userId: user._id,
-        access_token: generateAccessToken({ userId: user._id }),
-        refresh_token: generateRefreshToken({ userId: user._id }),
+        access_token: generateAccessToken({
+          userId: user._id,
+          verified: user.verified,
+        }),
+        refresh_token: generateRefreshToken({
+          userId: user._id,
+          verified: user.verified,
+        }),
       }).save();
 
       const message = `${process.env.BASE_URL}/auth/verify/${user.id}/${token.access_token}`;
       await sendEmail(user.email, "Verify Email", message);
 
-      res.status(200).send("An Email sent to your account please verify");
+      res.status(200).json({
+        accessToken: token.access_token,
+        refreshToken: token.refresh_token,
+      });
     });
   } catch (error) {
     res.status(400).send("An error occured");
@@ -56,11 +65,13 @@ exports.signin = async (req, res) => {
     const loggedUser = await User.findOne({ email: req.body.email });
     if (!loggedUser) return res.status(400).send("User doesnot exist!");
 
-    if (!(await bcrypt.compare(req.body.password, loggedUser.password))) {
+    if (!(await bcrypt.compare(req.body.password, loggedUser.password)))
       return res.status(403).send("password incorrect");
-    }
 
-    const user = { userId: loggedUser.id };
+    const verified = loggedUser.verified;
+    if (!verified) return res.status(403).send("Email doesnot verified");
+
+    const user = { userId: loggedUser.id, verified: loggedUser.verified };
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
@@ -81,12 +92,16 @@ exports.signin = async (req, res) => {
 exports.refresh = async (req, res) => {
   const refreshToken = req.body.refreshToken;
   if (!refreshToken) return res.status(400).send("Empty Token");
+
   if (!(await Token.findOne({ refresh_token: refreshToken })))
     return res.status(401).send("Token doesnot found");
 
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
     if (err) return res.send(403);
-    const accessToken = generateAccessToken({ userId: user.userId });
+    const accessToken = generateAccessToken({
+      userId: user.userId,
+      verified: user.verified,
+    });
     return res.json({ accessToken });
   });
 };
@@ -97,16 +112,26 @@ exports.verify = async (req, res) => {
     const user = await User.findOne({ _id: req.params.id });
     if (!user) return res.status(400).send("Invalid link");
 
-    const token = await Token.findOne({
+    const access_token = generateAccessToken({
       userId: user._id,
-      access_token: req.params.token,
+      verified: true,
+    });
+    const refresh_token = generateRefreshToken({
+      userId: user._id,
+      verified: true,
     });
 
-    if (!token) return res.status(400).send("Invalid link");
-
+    const token = await Token.findOneAndUpdate(
+      {
+        userId: user._id,
+        access_token: req.params.token,
+      },
+      { access_token, refresh_token },
+      { new: true }
+    );
     await User.findOneAndUpdate({ _id: user._id }, { verified: true });
 
-    res.send("email verified sucessfully");
+    res.send("Email Verified Successfully");
   } catch (error) {
     res.status(400).send("An error occured");
   }
@@ -125,4 +150,17 @@ exports.logout = async (req, res) => {
   if (!token) return res.sendStatus(404);
 
   res.status(200).send("User Successfully logged out");
+};
+// user
+exports.user = async (req, res) => {
+  const email = req.body.email;
+  if (!email) return res.sendStatus(404);
+
+  const user = await User.findOne({ email });
+  if (!user) return res.sendStatus(404);
+
+  const token = await Token.findOne({ userId: user._id });
+  if (!token) return res.sendStatus(404);
+
+  res.status(200).json({ ...token });
 };
