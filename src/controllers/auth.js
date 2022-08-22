@@ -36,10 +36,12 @@ exports.signup = async (req, res) => {
         access_token: generateAccessToken({
           userId: user._id,
           verified: user.verified,
+          name: user.name,
         }),
         refresh_token: generateRefreshToken({
           userId: user._id,
           verified: user.verified,
+          name: user.name,
         }),
       }).save();
 
@@ -74,9 +76,6 @@ exports.resend = async (req, res) => {
 // Login
 exports.signin = async (req, res) => {
   try {
-    const { error } = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-
     const loggedUser = await User.findOne({ email: req.body.email });
     if (!loggedUser) return res.status(400).send("User doesnot exist!");
 
@@ -86,15 +85,18 @@ exports.signin = async (req, res) => {
     const verified = loggedUser.verified;
     if (!verified) return res.status(403).send("Email doesnot verified");
 
-    const user = { userId: loggedUser.id, verified: loggedUser.verified };
+    const user = {
+      userId: loggedUser.id,
+      verified: loggedUser.verified,
+      name: loggedUser.name,
+    };
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
     await Token.findOneAndUpdate(
       { userId: user.userId },
-      { access_token: accessToken, refresh_token: refreshToken },
-      { new: true }
+      { access_token: accessToken, refresh_token: refreshToken }
     );
 
     return res.json({ accessToken, refreshToken });
@@ -116,6 +118,7 @@ exports.refresh = async (req, res) => {
     const accessToken = generateAccessToken({
       userId: user.userId,
       verified: user.verified,
+      name: user.name,
     });
     return res.json({ accessToken });
   });
