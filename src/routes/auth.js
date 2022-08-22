@@ -6,6 +6,7 @@ const {
   refresh,
   logout,
   user,
+  resend,
 } = require("../controllers/auth");
 const Token = require("../models/Token");
 
@@ -18,5 +19,6 @@ router.get("/verify/:id/:token", verify);
 router.post("/refresh", refresh);
 router.delete("/logout", logout);
 router.post("/user", user);
+router.post("/resend", resend);
 
 module.exports = router;

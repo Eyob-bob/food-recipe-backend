@@ -56,6 +56,21 @@ exports.signup = async (req, res) => {
   }
 };
 
+// Resend Verification
+exports.resend = async (req, res) => {
+  const email = req.body.email;
+  if (!email) return res.sendStatus(404);
+
+  const user = await User.findOne({ email });
+  if (!user) return res.sendStatus(404);
+
+  const token = await Token.findOne({ userId: user._id });
+  if (!token) return res.sendStatus(404);
+
+  const message = `${process.env.BASE_URL}/auth/verify/${user.id}/${token.access_token}`;
+  await sendEmail(req.body.email, "Verify Email", message);
+};
+
 // Login
 exports.signin = async (req, res) => {
   try {
