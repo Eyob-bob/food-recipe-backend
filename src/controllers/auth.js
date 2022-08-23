@@ -133,10 +133,12 @@ exports.verify = async (req, res) => {
     const access_token = generateAccessToken({
       userId: user._id,
       verified: true,
+      name: user.name,
     });
     const refresh_token = generateRefreshToken({
       userId: user._id,
       verified: true,
+      name: user.name,
     });
 
     const token = await Token.findOneAndUpdate(
