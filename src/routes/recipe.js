@@ -8,6 +8,7 @@ const {
   addRecipe,
   getAllRecipe,
   getOneRecipe,
+  myRecipes,
 } = require("../controllers/recipe");
 const authenticate = require("../middlewares/auth");
 
@@ -21,7 +22,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedFileTypes = ["image/jpge", "image/jpg", "image/png"];
+  const allowedFileTypes = ["image/jpeg", "image/jpg", "image/png"];
   if (allowedFileTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -29,10 +30,11 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-let upload = multer({ storage, fileFilter });
+let upload = multer({ storage, fileFilter, limits: 2048 });
 
 router.post("/add", authenticate, upload.single("photo"), addRecipe);
 router.get("/getAll", getAllRecipe);
 router.get("/getOne/:id", getOneRecipe);
+router.get("/myRecipes", authenticate, myRecipes);
 
 module.exports = router;
