@@ -42,3 +42,24 @@ exports.addRecipe = async (req, res) => {
     savedStep,
   });
 };
+exports.getAllRecipe = async (req, res) => {
+  const allRecipe = await Recipe.find();
+  const allIngrident = await Ingrident.find();
+  const allStep = await Step.find();
+
+  res.json({
+    allIngrident,
+    allRecipe,
+    allStep,
+  });
+};
+exports.getOneRecipe = async (req, res) => {
+  const recipe = await Recipe.findById(req.params.id);
+  const ingrident = await Ingrident.findOne({ recipeId: recipe._id });
+  const step = await Step.findOne({ recipeId: recipe._id });
+  res.json({
+    recipe,
+    ingrident,
+    step,
+  });
+};

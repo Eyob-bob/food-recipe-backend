@@ -15,7 +15,6 @@ app.use(express.json());
 // Import Routes
 app.use("/auth", authRouter);
 
-app.use(authenticate);
 app.use("/recipe", recipeRouter);
 
 // Connect DB
