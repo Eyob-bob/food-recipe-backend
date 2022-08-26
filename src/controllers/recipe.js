@@ -14,8 +14,8 @@ exports.addRecipe = async (req, res) => {
     if (!numOfPersons) return res.status(404).send("numOfPersons is required");
     if (!photo) return res.status(404).send("photo is required");
 
-    const ingridents = req.body.ingridents;
-    const steps = req.body.steps;
+    const ingridents = req.body.ingridents.split(",");
+    const steps = req.body.steps.split(",");
 
     const { url } = await imgbbUploader(process.env.IMGBB_KEY, photo);
     const recipe = new Recipe({
