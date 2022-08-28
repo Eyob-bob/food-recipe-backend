@@ -8,12 +8,11 @@ const cors = require("cors");
 const app = express();
 
 // Middlewares
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 // Import Routes
 app.use("/auth", authRouter);
-
 app.use("/recipe", recipeRouter);
 
 // Connect DB
