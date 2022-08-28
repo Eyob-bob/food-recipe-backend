@@ -2,7 +2,6 @@ const express = require("express");
 const multer = require("multer");
 const { v4 } = require("uuid");
 const path = require("path");
-const { default: axios } = require("axios");
 const router = express.Router();
 const {
   addRecipe,
