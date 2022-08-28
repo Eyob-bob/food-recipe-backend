@@ -8,7 +8,12 @@ const cors = require("cors");
 const app = express();
 
 // Middlewares
-app.use(cors({ methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"] }));
+app.use(
+  cors({
+    origin: "https://food-recipe-theta.vercel.app",
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
+  })
+);
 app.use(express.json());
 
 // Import Routes
