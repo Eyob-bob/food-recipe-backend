@@ -8,7 +8,11 @@ const cors = require("cors");
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Import Routes
