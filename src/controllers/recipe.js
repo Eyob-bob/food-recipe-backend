@@ -3,6 +3,8 @@ const Recipe = require("../models/Recipe");
 const Ingrident = require("../models/Ingrident");
 const Step = require("../models/Step");
 const fs = require("fs");
+const Favorite = require("../models/Favorite");
+const Bookmark = require("../models/Bookmark");
 
 exports.addRecipe = async (req, res) => {
   try {
@@ -45,10 +47,28 @@ exports.addRecipe = async (req, res) => {
 
     const savedStep = await step.save();
 
+    const fav = await Favorite({
+      userId: req.user.userId,
+      recipeId: savedRecipe._id,
+      isFav: false,
+    });
+
+    const savedFav = await fav.save();
+
+    const book = await Bookmark({
+      userId: req.user.userId,
+      recipeId: savedRecipe._id,
+      isBook: false,
+    });
+
+    const savedBook = await book.save();
+
     res.json({
       savedRecipe,
       savedIng,
       savedStep,
+      savedFav,
+      savedBook,
     });
   } catch (err) {
     res.status(500).send("Error");
@@ -75,6 +95,22 @@ exports.getOneRecipe = async (req, res) => {
     step,
   });
 };
+exports.getAuthenticatedOneRecipe = async (req, res) => {
+  const recipe = await Recipe.findById(req.params.id);
+  const userId = req.user.userId;
+  const fav = await Favorite.findOne({ userId, recipeId: recipe._id });
+  const book = await Bookmark.findOne({ userId, recipeId: recipe._id });
+  const ingrident = await Ingrident.findOne({ recipeId: recipe._id });
+  const step = await Step.findOne({ recipeId: recipe._id });
+  res.json({
+    recipe,
+    ingrident,
+    step,
+    fav,
+    book,
+  });
+};
+
 exports.myRecipes = async (req, res) => {
   const recipe = await Recipe.find({ postUserId: req.user.userId });
   res.json({
