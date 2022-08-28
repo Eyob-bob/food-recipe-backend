@@ -5,6 +5,8 @@ const Step = require("../models/Step");
 const fs = require("fs");
 const Favorite = require("../models/Favorite");
 const Bookmark = require("../models/Bookmark");
+const Comment = require("../models/Comment");
+const { User } = require("../models/User");
 
 exports.addRecipe = async (req, res) => {
   try {
@@ -31,7 +33,7 @@ exports.addRecipe = async (req, res) => {
 
     const savedRecipe = await recipe.save();
 
-    fs.unlink(`${photo}`, (err) => console.log(err));
+    fs.unlink(`${photo}`);
 
     const ingrident = new Ingrident({
       recipeId: savedRecipe._id,
@@ -75,67 +77,171 @@ exports.addRecipe = async (req, res) => {
   }
 };
 exports.getAllRecipe = async (req, res) => {
-  const allRecipe = await Recipe.find();
-  const allIngrident = await Ingrident.find();
-  const allStep = await Step.find();
+  try {
+    const allRecipe = await Recipe.find();
+    const allIngrident = await Ingrident.find();
+    const allStep = await Step.find();
 
-  res.json({
-    allIngrident,
-    allRecipe,
-    allStep,
-  });
+    res.json({
+      allIngrident,
+      allRecipe,
+      allStep,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 };
 exports.getOneRecipe = async (req, res) => {
-  const recipe = await Recipe.findById(req.params.id);
-  const ingrident = await Ingrident.findOne({ recipeId: recipe._id });
-  const step = await Step.findOne({ recipeId: recipe._id });
-  res.json({
-    recipe,
-    ingrident,
-    step,
-  });
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    const ingrident = await Ingrident.findOne({ recipeId: recipe._id });
+    const step = await Step.findOne({ recipeId: recipe._id });
+    res.json({
+      recipe,
+      ingrident,
+      step,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 };
 exports.getAuthenticatedOneRecipe = async (req, res) => {
-  const recipe = await Recipe.findById(req.params.id);
-  const userId = req.user.userId;
-  const fav = await Favorite.findOne({ userId, recipeId: recipe._id });
-  const book = await Bookmark.findOne({ userId, recipeId: recipe._id });
-  const ingrident = await Ingrident.findOne({ recipeId: recipe._id });
-  const step = await Step.findOne({ recipeId: recipe._id });
-  res.json({
-    recipe,
-    ingrident,
-    step,
-    fav,
-    book,
-  });
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    const userId = req.user.userId;
+    const fav = await Favorite.findOne({ userId, recipeId: recipe._id });
+    const book = await Bookmark.findOne({ userId, recipeId: recipe._id });
+    const comment = await Comment.find({ userId, recipeId: recipe._id });
+    const ingrident = await Ingrident.findOne({ recipeId: recipe._id });
+    const step = await Step.findOne({ recipeId: recipe._id });
+    res.json({
+      recipe,
+      ingrident,
+      step,
+      fav,
+      book,
+      comment,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 };
 
 exports.myRecipes = async (req, res) => {
-  const recipe = await Recipe.find({ postUserId: req.user.userId });
-  res.json({
-    recipe,
-  });
+  try {
+    const recipe = await Recipe.find({ postUserId: req.user.userId });
+    res.json({
+      recipe,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 };
 exports.favorite = async (req, res) => {
-  const fav = await Favorite.findByIdAndUpdate(
-    req.body._id,
-    { isFav: !req.body.isFav },
-    { new: true }
-  );
+  try {
+    const fav = await Favorite.findByIdAndUpdate(
+      req.body._id,
+      { isFav: !req.body.isFav },
+      { new: true }
+    );
 
-  res.json({
-    fav,
-  });
+    res.json({
+      fav,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 };
 exports.bookmark = async (req, res) => {
-  const book = await Bookmark.findByIdAndUpdate(
-    req.body._id,
-    { isBook: !req.body.isBook },
-    { new: true }
-  );
+  try {
+    const book = await Bookmark.findByIdAndUpdate(
+      req.body._id,
+      { isBook: !req.body.isBook },
+      { new: true }
+    );
 
-  res.json({
-    book,
-  });
+    res.json({
+      book,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
+};
+
+exports.comment = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const recipeId = req.body.id;
+    const comment = req.body.comment;
+
+    const name = (await User.findById(userId)).name;
+
+    const com = await Comment({
+      userId,
+      recipeId,
+      comment,
+      name,
+    });
+
+    const comm = await com.save();
+
+    const all = await Comment.find({ recipeId, userId });
+
+    res.json({
+      comment: comm,
+      allComment: all,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
+};
+
+exports.getFavorite = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const favorites = await Favorite.find({ userId });
+
+    const recipesId = favorites.map((fav) => {
+      if (fav.isFav) return fav.recipeId;
+    });
+
+    const recipes = await Promise.all(
+      recipesId.map((id) => {
+        const recipe = Recipe.findById(id);
+        return recipe;
+      })
+    );
+
+    res.json({
+      recipes,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
+};
+
+exports.getBookmark = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const bookmarks = await Bookmark.find({ userId });
+
+    const recipesId = bookmarks.map((book) => {
+      if (book.isBook) return book.recipeId;
+    });
+
+    const recipes = await Promise.all(
+      recipesId.map((id) => {
+        const recipe = Recipe.findById(id);
+        return recipe;
+      })
+    );
+
+    res.json({
+      recipes,
+    });
+  } catch (err) {
+    res.status(500).send("Error");
+  }
 };
