@@ -117,3 +117,25 @@ exports.myRecipes = async (req, res) => {
     recipe,
   });
 };
+exports.favorite = async (req, res) => {
+  const fav = await Favorite.findByIdAndUpdate(
+    req.body._id,
+    { isFav: !req.body.isFav },
+    { new: true }
+  );
+
+  res.json({
+    fav,
+  });
+};
+exports.bookmark = async (req, res) => {
+  const book = await Bookmark.findByIdAndUpdate(
+    req.body._id,
+    { isBook: !req.body.isBook },
+    { new: true }
+  );
+
+  res.json({
+    book,
+  });
+};

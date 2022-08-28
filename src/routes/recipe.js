@@ -10,6 +10,8 @@ const {
   getOneRecipe,
   myRecipes,
   getAuthenticatedOneRecipe,
+  favorite,
+  bookmark,
 } = require("../controllers/recipe");
 const authenticate = require("../middlewares/auth");
 
@@ -38,5 +40,7 @@ router.get("/getAll", getAllRecipe);
 router.get("/getOne/:id", getOneRecipe);
 router.get("/getAuthenticatedOne/:id", authenticate, getAuthenticatedOneRecipe);
 router.get("/myRecipes", authenticate, myRecipes);
+router.post("/favorite", authenticate, favorite);
+router.post("/bookmark", authenticate, bookmark);
 
 module.exports = router;
