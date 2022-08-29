@@ -7,6 +7,7 @@ const Favorite = require("../models/Favorite");
 const Bookmark = require("../models/Bookmark");
 const Comment = require("../models/Comment");
 const { User } = require("../models/User");
+const path = require("path");
 
 exports.addRecipe = async (req, res) => {
   try {
@@ -33,7 +34,7 @@ exports.addRecipe = async (req, res) => {
 
     const savedRecipe = await recipe.save();
 
-    fs.unlink(`${photo}`, (err) => console.log(err));
+    fs.unlink(path.join(__dirname, "../../", photo), (err) => console.log(err));
 
     const ingrident = new Ingrident({
       recipeId: savedRecipe._id,
