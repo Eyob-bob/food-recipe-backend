@@ -19,7 +19,7 @@ const authenticate = require("../middlewares/auth");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/");
+    cb(null, path.join(__dirname, "../../", "public"));
   },
   filename: function (req, file, cb) {
     cb(null, v4() + "-" + Date.now() + path.extname(file.originalname));
