@@ -114,7 +114,7 @@ exports.refresh = async (req, res) => {
     return res.status(401).send("Token doesnot found");
 
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) return res.send(403);
+    if (err) return res.status(403).send("Token doesnot match");
     const accessToken = generateAccessToken({
       userId: user.userId,
       verified: user.verified,

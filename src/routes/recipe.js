@@ -37,7 +37,6 @@ const fileFilter = (req, file, cb) => {
 
 let upload = multer({ storage, fileFilter, limits: 2048 });
 
-router.post("/add", authenticate, upload.single("photo"), addRecipe);
 router.get("/getAll", getAllRecipe);
 router.get("/getOne/:id", getOneRecipe);
 router.get("/getAuthenticatedOne/:id", authenticate, getAuthenticatedOneRecipe);
@@ -47,5 +46,6 @@ router.post("/bookmark", authenticate, bookmark);
 router.post("/comment", authenticate, comment);
 router.get("/favorite", authenticate, getFavorite);
 router.get("/bookmark", authenticate, getBookmark);
+router.post("/add", authenticate, upload.single("photo"), addRecipe);
 
 module.exports = router;

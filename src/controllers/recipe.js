@@ -33,7 +33,7 @@ exports.addRecipe = async (req, res) => {
 
     const savedRecipe = await recipe.save();
 
-    fs.unlink(`${photo}`);
+    fs.unlink(`${photo}`, (err) => console.log(err));
 
     const ingrident = new Ingrident({
       recipeId: savedRecipe._id,
@@ -73,6 +73,7 @@ exports.addRecipe = async (req, res) => {
       savedBook,
     });
   } catch (err) {
+    console.log(err);
     res.status(500).send("Error");
   }
 };
