@@ -65,7 +65,6 @@ exports.addRecipe = async (req, res) => {
 
     const savedBook = await book.save();
 
-    res.header("Access-Control-Allow-Origin", "*");
     res.json({
       savedRecipe,
       savedIng,
