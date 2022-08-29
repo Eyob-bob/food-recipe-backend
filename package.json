@@ -22,7 +22,6 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
-    "axios": "^0.27.2",
     "nodemon": "^2.0.19"
   }
 }

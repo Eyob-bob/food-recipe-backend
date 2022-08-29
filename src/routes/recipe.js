@@ -16,7 +16,6 @@ const {
   getBookmark,
 } = require("../controllers/recipe");
 const authenticate = require("../middlewares/auth");
-const cors = require("cors");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -38,7 +37,7 @@ const fileFilter = (req, file, cb) => {
 
 let upload = multer({ storage, fileFilter, limits: 2048 });
 
-router.post("/add", cors(), authenticate, upload.single("photo"), addRecipe);
+router.post("/add", authenticate, upload.single("photo"), addRecipe);
 router.get("/getAll", getAllRecipe);
 router.get("/getOne/:id", getOneRecipe);
 router.get("/getAuthenticatedOne/:id", authenticate, getAuthenticatedOneRecipe);
