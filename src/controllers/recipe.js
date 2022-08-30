@@ -112,7 +112,27 @@ exports.getAuthenticatedOneRecipe = async (req, res) => {
     const recipe = await Recipe.findById(req.params.id);
     const userId = req.user.userId;
     const fav = await Favorite.findOne({ userId, recipeId: recipe._id });
+    let savedFav = fav;
+    if (fav == null) {
+      const favo = await Favorite({
+        userId: req.user.userId,
+        recipeId: recipe._id,
+        isFav: false,
+      });
+
+      savedFav = await favo.save();
+    }
     const book = await Bookmark.findOne({ userId, recipeId: recipe._id });
+    let savedBook = book;
+    if (book == null) {
+      const bookm = await Bookmark({
+        userId: req.user.userId,
+        recipeId: recipe._id,
+        isBook: false,
+      });
+
+      savedBook = await bookm.save();
+    }
     const comment = await Comment.find({ userId, recipeId: recipe._id });
     const ingrident = await Ingrident.findOne({ recipeId: recipe._id });
     const step = await Step.findOne({ recipeId: recipe._id });
@@ -120,8 +140,8 @@ exports.getAuthenticatedOneRecipe = async (req, res) => {
       recipe,
       ingrident,
       step,
-      fav,
-      book,
+      fav: savedFav,
+      book: savedBook,
       comment,
     });
   } catch (err) {
